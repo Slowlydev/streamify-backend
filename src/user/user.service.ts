@@ -32,6 +32,19 @@ export class UserService {
 		return this.findExistingUser(id);
 	}
 
+	async findUsername(username: User['username']): Promise<User> {
+		this.logger.info(`finding user with username '${username}'`);
+
+		const user = await this.userRepository.findOne({ where: { username } });
+
+		if (!user) {
+			this.logger.warn(`user with username '${username}' was not found`);
+			throw new NotFoundException(`user with username '${username}' was not found`);
+		}
+
+		return user;
+	}
+
 	sendProfile(id: User['id'], response: Response): void {
 		this.logger.info(`finding profile-image with id '${id}'`);
 

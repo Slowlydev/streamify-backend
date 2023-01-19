@@ -67,7 +67,7 @@ export class VideoService {
 	}
 
 	async createComment(username: User['username'], id: Video['id'], comment: CreateCommentDto): Promise<Comment> {
-		const user = await this.userService.findUser(username);
+		const user = await this.userService.findUsername(username);
 		const video = await this.findExistingVideo(id);
 
 		return this.commentService.createComment(user, video, comment);

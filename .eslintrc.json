@@ -1,0 +1,40 @@
+{
+	"root": true,
+	"env": {
+		"node": true,
+		"es6": true
+	},
+	"ignorePatterns": ["coverage/**", "dist/**", "scripts/**", "**/*.sh"],
+	"extends": [
+		"eslint:recommended",
+		"plugin:@typescript-eslint/eslint-recommended",
+		"plugin:@typescript-eslint/recommended",
+		"plugin:prettier/recommended"
+	],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"project": "./tsconfig.json",
+		"tsconfigRootDir": "./"
+	},
+	"plugins": ["@typescript-eslint", "prettier", "unused-imports"],
+	"rules": {
+		"unused-imports/no-unused-imports": "warn",
+		"@typescript-eslint/explicit-function-return-type": [
+			"warn",
+			{
+				"allowExpressions": true,
+				"allowConciseArrowFunctionExpressionsStartingWithVoid": true
+			}
+		],
+		"prettier/prettier": ["warn", {}, { "usePrettierrc": true }],
+		"require-await": ["warn"],
+		"no-return-await": ["warn"],
+		"@typescript-eslint/no-floating-promises": ["warn"],
+		"@typescript-eslint/no-shadow": ["warn"],
+		"@typescript-eslint/explicit-module-boundary-types": ["warn"],
+		"@typescript-eslint/no-explicit-any": ["warn"],
+		"id-length": ["warn", { "min": 2, "max": 30 }],
+		"no-multiple-empty-lines": "warn",
+		"eol-last": "warn"
+	}
+}

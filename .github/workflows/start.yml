@@ -1,0 +1,76 @@
+name: start nest app
+
+on:
+  push:
+    branches: [main, develop, feature/*, bugfix/*, hotfix/*, refactor/*, dependabot/*]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+
+    services:
+      mysql:
+        image: mariadb:10.3
+        env:
+          MYSQL_ROOT_PASSWORD: 1234
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: use node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: install
+        run: yarn
+
+      - name: lint
+        run: yarn lint
+
+      - name: build
+        run: yarn build
+
+      - name: test
+        run: yarn test
+
+      - name: screen
+        run: sudo apt install screen
+
+      - name: env
+        run: |
+          echo "NAME=streamify" >> .env
+          echo "STAGE=production" >> .env
+          echo "PORT=4000" >> .env
+          echo "JWT_SECRET=secret" >> .env
+          echo "JWT_EXPIRY=1200" >> .env
+          echo "THROTTLE_TTL=60" >> .env
+          echo "THROTTLE_LIMIT=240" >> .env
+          echo "FRONTEND_URL=https://" >> .env
+          echo "BACKEND_PREFIX=/api/" >> .env
+          echo "DATABASE_HOST=localhost" >> .env
+          echo "DATABASE_USERNAME=root" >> .env
+          echo "DATABASE_PASSWORD=root" >> .env
+          echo "DATABASE_PORT=3306" >> .env
+          echo "DATABASE_NAME=simylein" >> .env
+          echo "DATABASE_TYPE=mysql" >> .env
+          echo "DATABASE_SYNCHRONIZE=false" >> .env
+          echo "LOG_REQUESTS=true" >> .env
+          echo "LOG_RESPONSES=true" >> .env
+          echo "LOG_LEVEL=debug" >> .env
+
+      - name: mysql
+        run: |
+          sudo service mysql start
+          mysql -u root -proot -e "CREATE DATABASE streamify"
+          mysql -u root -proot -e "GRANT ALL ON streamify.* TO root@localhost"
+
+      - name: start
+        run: bash bootstrap.sh main

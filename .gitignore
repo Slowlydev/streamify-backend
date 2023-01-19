@@ -1,0 +1,22 @@
+# dependencies
+/node_modules
+
+# compiled output
+/dist
+
+# testing results
+coverage
+
+# operating system
+.DS_Store
+
+# credentials
+*.env
+!.example.env
+ormconfig.json
+
+# logs
+*.log
+
+# assets
+src/assets

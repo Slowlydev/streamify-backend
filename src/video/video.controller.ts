@@ -24,6 +24,7 @@ export class VideoController {
 		return this.videoService.findVideo(param.id);
 	}
 
+	@Authentication()
 	@Get('/:id/thumbnail')
 	@Header('Accept-Ranges', 'bytes')
 	@Header('Content-Type', 'image/png')

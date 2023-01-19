@@ -38,8 +38,12 @@ export class UserService {
 	sendProfile(id: User['id'], response: Response): void {
 		this.logger.info(`finding profile-image with id '${id}'`);
 
-		const profilePath = `src/assets/profiles/${id}.png`;
-		createReadStream(profilePath).pipe(response);
+		try {
+			const profilePath = `src/assets/profiles/${id}.png`;
+			createReadStream(profilePath).pipe(response);
+		} catch (err) {
+			this.logger.error(err);
+		}
 	}
 
 	async findVideos(id: User['id']): Promise<Video[]> {

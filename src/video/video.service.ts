@@ -57,32 +57,40 @@ export class VideoService {
 	sendThumbnail(id: Video['id'], response: Response): void {
 		this.logger.info(`finding thumbnail with id '${id}'`);
 
-		const thumbnailPath = `src/assets/thumbnails/${id}.png`;
-		createReadStream(thumbnailPath).pipe(response);
+		try {
+			const thumbnailPath = `src/assets/thumbnails/${id}.png`;
+			createReadStream(thumbnailPath).pipe(response);
+		} catch (err) {
+			this.logger.error(err);
+		}
 	}
 
 	streamVideo(id: Video['id'], headers: Record<string, string | undefined>, response: Response): void {
 		this.logger.info(`streaming video with id '${id}'`);
 
-		const videoPath = `src/assets/videos/${id}.mp4`;
-		const { size } = statSync(videoPath);
-		const videoRange = headers.range;
+		try {
+			const videoPath = `src/assets/videos/${id}.mp4`;
+			const { size } = statSync(videoPath);
+			const videoRange = headers.range;
 
-		if (videoRange) {
-			const parts = videoRange.replace(/bytes=/, '').split('-');
-			const start = parseInt(parts[0], 10);
-			const end = parts[1] ? parseInt(parts[1], 10) : size - 1;
-			const chunksize = end - start + 1;
-			const readStreamFile = createReadStream(videoPath, { start, end, highWaterMark: 60 });
-			const head = { 'Content-Range': `bytes ${start}-${end}/${size}`, 'Content-Length': chunksize };
+			if (videoRange) {
+				const parts = videoRange.replace(/bytes=/, '').split('-');
+				const start = parseInt(parts[0], 10);
+				const end = parts[1] ? parseInt(parts[1], 10) : size - 1;
+				const chunksize = end - start + 1;
+				const readStreamFile = createReadStream(videoPath, { start, end, highWaterMark: 60 });
+				const head = { 'Content-Range': `bytes ${start}-${end}/${size}`, 'Content-Length': chunksize };
 
-			response.writeHead(HttpStatus.PARTIAL_CONTENT, head);
-			readStreamFile.pipe(response);
-		} else {
-			const head = { 'Content-Length': size };
+				response.writeHead(HttpStatus.PARTIAL_CONTENT, head);
+				readStreamFile.pipe(response);
+			} else {
+				const head = { 'Content-Length': size };
 
-			response.writeHead(HttpStatus.OK, head);
-			createReadStream(videoPath).pipe(response);
+				response.writeHead(HttpStatus.OK, head);
+				createReadStream(videoPath).pipe(response);
+			}
+		} catch (err) {
+			this.logger.error(err);
 		}
 	}
 }

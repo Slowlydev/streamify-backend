@@ -53,6 +53,7 @@ export class VideoController {
 		return this.videoService.streamVideo(param.id, headers, response);
 	}
 
+	@Authentication()
 	@Post('/:id/comment')
 	postComment(@CurrentUser() user: User, @Param() param: BaseDto, @Body() body: CreateCommentDto): Promise<Comment> {
 		return this.videoService.createComment(user.username, param.id, body);

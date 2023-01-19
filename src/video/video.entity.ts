@@ -1,4 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Comment } from '../comment/comment.entity';
 import { MetadataEntity } from '../common/entities/metadata-entity';
 import { User } from '../user/user.entity';
 
@@ -19,4 +20,7 @@ export class Video extends MetadataEntity {
 	@ManyToOne(() => User, (user) => user.videos)
 	@JoinColumn({ name: 'user_id' })
 	user: User;
+
+	@ManyToOne(() => Comment, (comment) => comment.video)
+	comments: Comment[];
 }

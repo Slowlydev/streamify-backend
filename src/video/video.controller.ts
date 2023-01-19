@@ -1,6 +1,7 @@
 import { Controller, Get, Header, Headers, Param, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { Comment } from '../comment/comment.entity';
 import { Authentication } from '../common/decorators/authentication.decorator';
 import { BaseDto } from '../common/entities/base-dto';
 import { VideoQueryFiltersDto } from './dto/video-query-filters.dto';
@@ -22,6 +23,12 @@ export class VideoController {
 	@Get('/:id')
 	getVideo(@Param() param: BaseDto): Promise<Video> {
 		return this.videoService.findVideo(param.id);
+	}
+
+	@Authentication()
+	@Get('/:id/comment')
+	getComments(@Param() param: BaseDto): Promise<Comment[]> {
+		return this.videoService.findComments(param.id);
 	}
 
 	@Authentication()

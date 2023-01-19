@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
+import { CommentModule } from './comment/comment.module';
 import { ConfigModule } from './common/config/config.module';
 import { DatabaseModule } from './common/database/database.module';
 import { LoggerMiddleware } from './common/logger/logger.middleware';
@@ -21,6 +22,7 @@ import { VideoModule } from './video/video.module';
 		EventModule,
 		UserModule,
 		VideoModule,
+		CommentModule,
 	],
 	controllers: [],
 	providers: [],

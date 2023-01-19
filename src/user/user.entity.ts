@@ -1,4 +1,5 @@
 import { Column, Entity, OneToMany } from 'typeorm';
+import { Comment } from '../comment/comment.entity';
 import { MetadataEntity } from '../common/entities/metadata-entity';
 import { Language } from '../common/enums/language.enum';
 import { Theme } from '../common/enums/theme.enum';
@@ -20,4 +21,7 @@ export class User extends MetadataEntity {
 
 	@OneToMany(() => Video, (video) => video.user)
 	videos: Video[];
+
+	@OneToMany(() => Comment, (comment) => comment.user)
+	comments: Comment[];
 }

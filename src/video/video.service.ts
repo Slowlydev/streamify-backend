@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Response } from 'express';
 import { createReadStream, statSync } from 'fs';
 import { Repository } from 'typeorm';
+import { Comment } from '../comment/comment.entity';
+import { CommentService } from '../comment/comment.service';
 import { LoggerService } from '../common/logger/logger.service';
 import { User } from '../user/user.entity';
 import { VideoQueryFiltersDto } from './dto/video-query-filters.dto';
@@ -12,6 +14,7 @@ import { Video } from './video.entity';
 export class VideoService {
 	constructor(
 		@InjectRepository(Video) private readonly videoRepository: Repository<Video>,
+		private readonly commentService: CommentService,
 		private readonly logger: LoggerService,
 	) {}
 
@@ -52,6 +55,14 @@ export class VideoService {
 		this.logger.info(`finding video with id '${id}'`);
 
 		return this.findExistingVideo(id);
+	}
+
+	async findComments(id: Video['id']): Promise<Comment[]> {
+		this.logger.info(`finding comments for video with id '${id}'`);
+
+		await this.findExistingVideo(id);
+
+		return this.commentService.findComments(id);
 	}
 
 	sendThumbnail(id: Video['id'], response: Response): void {

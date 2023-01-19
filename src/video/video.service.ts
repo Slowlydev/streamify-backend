@@ -42,6 +42,7 @@ export class VideoService {
 			queryBuilder.leftJoinAndSelect(`video.${relation}`, relation);
 		});
 		queryBuilder.orderBy('video.likes', 'DESC');
+		queryBuilder.addOrderBy('video.views', 'DESC');
 
 		if (filters.title) {
 			queryBuilder.where('video.title like :title', { title: `%${filters.title}%` });
@@ -84,8 +85,10 @@ export class VideoService {
 		}
 	}
 
-	streamVideo(id: Video['id'], headers: Record<string, string | undefined>, response: Response): void {
+	async streamVideo(id: Video['id'], headers: Record<string, string | undefined>, response: Response): Promise<void> {
 		this.logger.info(`streaming video with id '${id}'`);
+
+		await this.videoRepository.increment({ id }, 'views', 1);
 
 		try {
 			const videoPath = `src/assets/videos/${id}.mp4`;

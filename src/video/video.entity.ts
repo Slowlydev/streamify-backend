@@ -12,6 +12,9 @@ export class Video extends MetadataEntity {
 	description: string;
 
 	@Column({ type: 'int' })
+	views: number;
+
+	@Column({ type: 'int' })
 	likes: number;
 
 	@Column({ type: 'int' })

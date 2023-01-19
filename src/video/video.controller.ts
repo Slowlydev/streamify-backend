@@ -49,7 +49,7 @@ export class VideoController {
 		@Param() param: BaseDto,
 		@Headers() headers: Record<string, string | undefined>,
 		@Res() response: Response,
-	): void {
+	): Promise<void> {
 		return this.videoService.streamVideo(param.id, headers, response);
 	}
 

@@ -5,7 +5,6 @@ import { authorization } from '../auth/auth.table';
 import { Authentication } from '../common/decorators/authentication.decorator';
 import { Authorization } from '../common/decorators/authorization.decorator';
 import { BaseDto } from '../common/entities/base-dto';
-import { Video } from '../video/video.entity';
 import { UserUpdateDto } from './dto/user-update.dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
@@ -26,11 +25,6 @@ export class UserController {
 	@Get(':id')
 	getUser(@Param() param: BaseDto): Promise<User> {
 		return this.userService.findUser(param.id);
-	}
-
-	@Get(':id/video')
-	getVideos(@Param() param: BaseDto): Promise<Video[]> {
-		return this.userService.findVideos(param.id);
 	}
 
 	@Authorization(authorization.user.update)

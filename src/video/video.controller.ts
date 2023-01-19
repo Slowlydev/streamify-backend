@@ -1,9 +1,12 @@
-import { Controller, Get, Header, Headers, Param, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Header, Headers, Param, Post, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Comment } from '../comment/comment.entity';
 import { Authentication } from '../common/decorators/authentication.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { BaseDto } from '../common/entities/base-dto';
+import { User } from '../user/user.entity';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { VideoQueryFiltersDto } from './dto/video-query-filters.dto';
 import { Video } from './video.entity';
 import { VideoService } from './video.service';
@@ -48,5 +51,10 @@ export class VideoController {
 		@Res() response: Response,
 	): void {
 		return this.videoService.streamVideo(param.id, headers, response);
+	}
+
+	@Post('/:id/comment')
+	postComment(@CurrentUser() user: User, @Param() param: BaseDto, @Body() body: CreateCommentDto): Promise<Comment> {
+		return this.videoService.createComment(user.username, param.id, body);
 	}
 }

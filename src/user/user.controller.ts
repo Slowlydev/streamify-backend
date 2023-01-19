@@ -9,7 +9,6 @@ import { UserUpdateDto } from './dto/user-update.dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 
-@Authentication()
 @ApiTags('user')
 @Controller('/user')
 export class UserController {
@@ -22,12 +21,14 @@ export class UserController {
 		return this.userService.sendProfile(param.id, response);
 	}
 
+	@Authentication()
 	@Authorization(authorization.user.update)
 	@Patch(':id')
 	putUser(@Param() param: BaseDto, @Body() body: UserUpdateDto): Promise<User> {
 		return this.userService.updateUser(param.id, body);
 	}
 
+	@Authentication()
 	@Authorization(authorization.user.delete)
 	@Delete(':id')
 	deleteUser(@Param() param: BaseDto): Promise<void> {

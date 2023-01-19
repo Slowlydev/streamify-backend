@@ -29,6 +29,12 @@ export class UserService {
 		return user;
 	}
 
+	findUser(id: User['id']): Promise<User> {
+		this.logger.info(`finding user with id '${id}'`);
+
+		return this.findExistingUser(id);
+	}
+
 	sendProfile(id: User['id'], response: Response): void {
 		this.logger.info(`finding profile-image with id '${id}'`);
 

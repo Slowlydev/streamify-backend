@@ -23,6 +23,11 @@ export class UserController {
 		return this.userService.sendProfile(param.id, response);
 	}
 
+	@Get(':id')
+	getUser(@Param() param: BaseDto): Promise<User> {
+		return this.userService.findUser(param.id);
+	}
+
 	@Get(':id/video')
 	getVideos(@Param() param: BaseDto): Promise<Video[]> {
 		return this.userService.findVideos(param.id);

@@ -7,22 +7,24 @@ import { VideoQueryFiltersDto } from './dto/video-query-filters.dto';
 import { Video } from './video.entity';
 import { VideoService } from './video.service';
 
-@Authentication()
 @ApiTags('video')
 @Controller('/video')
 export class VideoController {
 	constructor(private readonly videoService: VideoService) {}
 
+	@Authentication()
 	@Get()
 	getVideos(@Query() query: VideoQueryFiltersDto): Promise<Video[]> {
 		return this.videoService.findVideos(query);
 	}
 
+	@Authentication()
 	@Get('/:id')
 	getVideo(@Param() param: BaseDto): Promise<Video> {
 		return this.videoService.findVideo(param.id);
 	}
 
+	@Authentication()
 	@Get('/:id/thumbnail')
 	@Header('Accept-Ranges', 'bytes')
 	@Header('Content-Type', 'image/png')

@@ -11,5 +11,6 @@ import { VideoService } from './video.service';
 	imports: [TypeOrmModule.forFeature([User, Video]), ConfigModule],
 	providers: [VideoService, LoggerService, { provide: 'LOGGER_CONTEXT', useValue: VideoService.name }],
 	controllers: [VideoController],
+	exports: [VideoService],
 })
 export class VideoModule {}

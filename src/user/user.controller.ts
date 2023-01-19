@@ -5,6 +5,7 @@ import { authorization } from '../auth/auth.table';
 import { Authentication } from '../common/decorators/authentication.decorator';
 import { Authorization } from '../common/decorators/authorization.decorator';
 import { BaseDto } from '../common/entities/base-dto';
+import { Video } from '../video/video.entity';
 import { UserUpdateDto } from './dto/user-update.dto';
 import { User } from './user.entity';
 import { UserService } from './user.service';
@@ -20,6 +21,11 @@ export class UserController {
 	@Header('Content-Type', 'image/png')
 	getProfileImage(@Param() param: BaseDto, @Res() response: Response): void {
 		return this.userService.sendProfile(param.id, response);
+	}
+
+	@Get(':id/video')
+	getVideos(@Param() param: BaseDto): Promise<Video[]> {
+		return this.userService.findVideos(param.id);
 	}
 
 	@Authorization(authorization.user.update)

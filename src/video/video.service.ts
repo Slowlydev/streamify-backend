@@ -4,6 +4,7 @@ import { Response } from 'express';
 import { createReadStream, statSync } from 'fs';
 import { Repository } from 'typeorm';
 import { LoggerService } from '../common/logger/logger.service';
+import { User } from '../user/user.entity';
 import { VideoQueryFiltersDto } from './dto/video-query-filters.dto';
 import { Video } from './video.entity';
 
@@ -27,7 +28,7 @@ export class VideoService {
 		return video;
 	}
 
-	findVideos(filters: VideoQueryFiltersDto): Promise<Video[]> {
+	findVideos(filters: VideoQueryFiltersDto, user?: User): Promise<Video[]> {
 		this.logger.info('finding all videos');
 
 		const queryBuilder = this.videoRepository.createQueryBuilder('video').select();
@@ -38,6 +39,10 @@ export class VideoService {
 
 		if (filters.title) {
 			queryBuilder.where('video.title like :title', { title: `%${filters.title}%` });
+		}
+
+		if (user) {
+			queryBuilder.andWhere('video.user_id = :userId', { userId: user.id });
 		}
 
 		return queryBuilder.getMany();

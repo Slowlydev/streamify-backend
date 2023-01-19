@@ -5,6 +5,8 @@ import { createReadStream } from 'fs';
 import { Repository } from 'typeorm';
 import { LoggerService } from '../common/logger/logger.service';
 import { hashPassword } from '../common/utils/hash-password.util';
+import { Video } from '../video/video.entity';
+import { VideoService } from '../video/video.service';
 import { UserUpdateDto } from './dto/user-update.dto';
 import { User } from './user.entity';
 
@@ -12,6 +14,7 @@ import { User } from './user.entity';
 export class UserService {
 	constructor(
 		@InjectRepository(User) private readonly userRepository: Repository<User>,
+		private readonly videoService: VideoService,
 		private readonly logger: LoggerService,
 	) {}
 
@@ -31,6 +34,12 @@ export class UserService {
 
 		const profilePath = `src/assets/profiles/${id}.png`;
 		createReadStream(profilePath).pipe(response);
+	}
+
+	async findVideos(id: User['id']): Promise<Video[]> {
+		const user = await this.findExistingUser(id);
+
+		return this.videoService.findVideos({}, user);
 	}
 
 	async updateUser(id: User['id'], updateRequest: UserUpdateDto): Promise<User> {

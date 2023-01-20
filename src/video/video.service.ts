@@ -34,7 +34,7 @@ export class VideoService {
 		return video;
 	}
 
-	findVideos(filters: VideoQueryFiltersDto, user?: User): Promise<Video[]> {
+	findVideos(filters: VideoQueryFiltersDto): Promise<Video[]> {
 		this.logger.info('finding all videos');
 
 		const queryBuilder = this.videoRepository.createQueryBuilder('video').select();
@@ -47,9 +47,8 @@ export class VideoService {
 		if (filters.title) {
 			queryBuilder.where('video.title like :title', { title: `%${filters.title}%` });
 		}
-
-		if (user) {
-			queryBuilder.andWhere('video.user_id = :userId', { userId: user.id });
+		if (filters.userId) {
+			queryBuilder.andWhere('video.user_id = :userId', { userId: filters.userId });
 		}
 
 		return queryBuilder.getMany();

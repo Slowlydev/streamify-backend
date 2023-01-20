@@ -2,17 +2,15 @@
 # nest bootstrap script
 
 export TERM="xterm-color"
-name=streamify-backend
-source .env
-export REACT_APP_PORT=${REACT_APP_PORT}
+name="streamify-backend"
 
 if screen -list | grep -q "\.${app}"; then
   echo "[${name}] info: quitting existing screen session..."
-  screen -S ${app} -X quit 1>/dev/null
+  screen -S "${app}" -X quit 1>/dev/null
 fi
 
 echo "[${name}] info: deploying ${app} app..."
-screen -dmSL ${app} -Logfile "screen.log" yarn start:prod 1>/dev/null
+screen -dmSL "${app}" -Logfile "screen.log" yarn start:prod 1>/dev/null
 
 sleep 2s
 

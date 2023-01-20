@@ -17,7 +17,7 @@ export class CommentService {
 	findComments(id: Video['id']): Promise<Comment[]> {
 		this.logger.info(`finding comments for video with id '${id}'`);
 
-		return this.commentRepository.find({ where: { video: { id } } });
+		return this.commentRepository.find({ where: { video: { id } }, relations: { user: true } });
 	}
 
 	createComment(user: User, video: Video, comment: CreateCommentDto): Promise<Comment> {

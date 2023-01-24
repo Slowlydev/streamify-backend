@@ -87,8 +87,6 @@ export class VideoService {
 	async streamVideo(id: Video['id'], headers: Record<string, string | undefined>, response: Response): Promise<void> {
 		this.logger.info(`streaming video with id '${id}'`);
 
-		await this.videoRepository.increment({ id }, 'views', 1);
-
 		try {
 			const videoPath = `src/assets/videos/${id}.mp4`;
 			const { size } = statSync(videoPath);
@@ -109,6 +107,8 @@ export class VideoService {
 
 				response.writeHead(HttpStatus.OK, head);
 				createReadStream(videoPath).pipe(response);
+
+				await this.videoRepository.increment({ id }, 'views', 1);
 			}
 		} catch (err) {
 			this.logger.error(err);

@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Response } from 'express';
-import { createReadStream, statSync } from 'fs';
+import { createReadStream, existsSync, statSync } from 'fs';
 import { Repository } from 'typeorm';
 import { Comment } from '../comment/comment.entity';
 import { CommentService } from '../comment/comment.service';
@@ -76,42 +76,46 @@ export class VideoService {
 	sendThumbnail(id: Video['id'], response: Response): void {
 		this.logger.info(`finding thumbnail with id '${id}'`);
 
-		try {
-			const thumbnailPath = `src/assets/thumbnails/${id}.png`;
-			createReadStream(thumbnailPath).pipe(response);
-		} catch (err) {
-			this.logger.error(err);
+		const thumbnailPath = `src/assets/thumbnails/${id}.png`;
+
+		if (!existsSync(thumbnailPath)) {
+			this.logger.warn(`thumbnail with id '${id}' was not found`);
+			throw new NotFoundException(`thumbnail with id '${id}' was not found`);
 		}
+
+		createReadStream(thumbnailPath).pipe(response);
 	}
 
 	async streamVideo(id: Video['id'], headers: Record<string, string | undefined>, response: Response): Promise<void> {
 		this.logger.info(`streaming video with id '${id}'`);
 
-		try {
-			const videoPath = `src/assets/videos/${id}.mp4`;
-			const { size } = statSync(videoPath);
-			const videoRange = headers.range;
+		const videoPath = `src/assets/videos/${id}.mp4`;
 
-			if (videoRange) {
-				const parts = videoRange.replace(/bytes=/, '').split('-');
-				const start = parseInt(parts[0], 10);
-				const end = parts[1] ? parseInt(parts[1], 10) : size - 1;
-				const chunksize = end - start + 1;
-				const readStreamFile = createReadStream(videoPath, { start, end, highWaterMark: 60 });
-				const head = { 'Content-Range': `bytes ${start}-${end}/${size}`, 'Content-Length': chunksize };
+		if (!existsSync(videoPath)) {
+			this.logger.warn(`video with id '${id}' was not found`);
+			throw new NotFoundException(`video with id '${id}' was not found`);
+		}
 
-				response.writeHead(HttpStatus.PARTIAL_CONTENT, head);
-				readStreamFile.pipe(response);
-			} else {
-				const head = { 'Content-Length': size };
+		const { size } = statSync(videoPath);
+		const videoRange = headers.range;
 
-				response.writeHead(HttpStatus.OK, head);
-				createReadStream(videoPath).pipe(response);
+		if (videoRange) {
+			const parts = videoRange.replace(/bytes=/, '').split('-');
+			const start = parseInt(parts[0], 10);
+			const end = parts[1] ? parseInt(parts[1], 10) : size - 1;
+			const chunksize = end - start + 1;
+			const readStreamFile = createReadStream(videoPath, { start, end, highWaterMark: 60 });
+			const head = { 'Content-Range': `bytes ${start}-${end}/${size}`, 'Content-Length': chunksize };
 
-				await this.videoRepository.increment({ id }, 'views', 1);
-			}
-		} catch (err) {
-			this.logger.error(err);
+			response.writeHead(HttpStatus.PARTIAL_CONTENT, head);
+			readStreamFile.pipe(response);
+		} else {
+			const head = { 'Content-Length': size };
+
+			response.writeHead(HttpStatus.OK, head);
+			createReadStream(videoPath).pipe(response);
+
+			await this.videoRepository.increment({ id }, 'views', 1);
 		}
 	}
 }

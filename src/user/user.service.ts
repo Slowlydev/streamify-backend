@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Response } from 'express';
-import { createReadStream } from 'fs';
+import { createReadStream, existsSync } from 'fs';
 import { Repository } from 'typeorm';
 import { LoggerService } from '../common/logger/logger.service';
 import { hashPassword } from '../common/utils/hash-password.util';
@@ -48,12 +48,14 @@ export class UserService {
 	sendProfile(id: User['id'], response: Response): void {
 		this.logger.info(`finding profile-image with id '${id}'`);
 
-		try {
-			const profilePath = `src/assets/profiles/${id}.png`;
-			createReadStream(profilePath).pipe(response);
-		} catch (err) {
-			this.logger.error(err);
+		const profilePath = `src/assets/profiles/${id}.png`;
+
+		if (!existsSync(profilePath)) {
+			this.logger.warn(`profile-image with id '${id}' was not found`);
+			throw new NotFoundException(`profile-image with id '${id}' was not found`);
 		}
+
+		createReadStream(profilePath).pipe(response);
 	}
 
 	async updateUser(id: User['id'], updateRequest: UserUpdateDto): Promise<User> {

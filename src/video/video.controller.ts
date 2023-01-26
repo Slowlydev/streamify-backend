@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Header, Headers, Param, Patch, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Header, Headers, Param, Patch, Post, Query, Res, Sse } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { Observable } from 'rxjs';
 import { Comment } from '../comment/comment.entity';
 import { Authentication } from '../common/decorators/authentication.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -29,9 +30,21 @@ export class VideoController {
 	}
 
 	@Authentication()
+	@Sse('/:id/sse')
+	sseVideo(@Param() param: BaseDto): Observable<unknown> {
+		return this.videoService.sseVideo(param.id);
+	}
+
+	@Authentication()
 	@Get('/:id/comment')
 	getComments(@CurrentUser() user: User, @Param() param: BaseDto): Promise<Comment[]> {
 		return this.videoService.findComments(user.username, param.id);
+	}
+
+	@Authentication()
+	@Sse('/:id/comment/sse')
+	sseVideoComments(@Param() param: BaseDto): Observable<unknown> {
+		return this.videoService.sseVideoComments(param.id);
 	}
 
 	@Authentication()

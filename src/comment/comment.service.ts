@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LoggerService } from '../common/logger/logger.service';
@@ -13,6 +13,17 @@ export class CommentService {
 		@InjectRepository(Comment) private readonly commentRepository: Repository<Comment>,
 		private readonly logger: LoggerService,
 	) {}
+
+	async findExistingComment(id: Comment['id']): Promise<Comment> {
+		const comment = await this.commentRepository.findOne({ where: { id } });
+
+		if (!comment) {
+			this.logger.warn(`comment with id '${id}' was not found`);
+			throw new NotFoundException(`comment with id '${id}' was not found`);
+		}
+
+		return comment;
+	}
 
 	findComments(id: Video['id']): Promise<Comment[]> {
 		this.logger.info(`finding comments for video with id '${id}'`);

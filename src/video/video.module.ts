@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { EventModule } from 'src/event/event.module';
 import { CommentModule } from '../comment/comment.module';
 import { ConfigModule } from '../common/config/config.module';
 import { LoggerService } from '../common/logger/logger.service';
@@ -15,6 +16,7 @@ import { VideoService } from './video.service';
 	imports: [
 		TypeOrmModule.forFeature([User, Video]),
 		ConfigModule,
+		EventModule,
 		CommentModule,
 		UserModule,
 		VideoLikeModule,

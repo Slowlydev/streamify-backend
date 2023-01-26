@@ -2,11 +2,13 @@ import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Response } from 'express';
 import { createReadStream, existsSync, statSync } from 'fs';
+import { Observable } from 'rxjs';
 import { Repository } from 'typeorm';
 import { Comment } from '../comment/comment.entity';
 import { CommentService } from '../comment/comment.service';
 import { LoggerService } from '../common/logger/logger.service';
 import { calcVideoAlgorithm } from '../common/utils/video-algorithm.util';
+import { EventService } from '../event/event.service';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { VideoDislikeService } from '../video-dislike/video-dislike.service';
@@ -23,6 +25,7 @@ export class VideoService {
 		private readonly videoDislikeService: VideoDislikeService,
 		private readonly videoLikeService: VideoLikeService,
 		private readonly commentService: CommentService,
+		private readonly eventService: EventService,
 		private readonly userService: UserService,
 		private readonly logger: LoggerService,
 	) {}
@@ -75,11 +78,14 @@ export class VideoService {
 		return this.findExistingVideo(id, user.id);
 	}
 
+	sseVideo(id: Video['id']): Observable<unknown> {
+		return this.eventService.subscribe(`video-${id}`);
+	}
+
 	async findComments(username: User['username'], id: Video['id']): Promise<Comment[]> {
 		const user = await this.userService.findUsername(username);
 
 		await this.findExistingVideo(id, user.id);
-
 		return this.commentService.findComments(id);
 	}
 
@@ -90,6 +96,7 @@ export class VideoService {
 		const video = await this.findExistingVideo(id, user.id);
 
 		await this.videoLikeService.toggleLike(video.id, user.id);
+		this.eventService.emit(`video-${id}`, { event: 'update' });
 	}
 
 	async dislikeVideo(username: User['username'], id: Video['id']): Promise<void> {
@@ -99,6 +106,7 @@ export class VideoService {
 		const video = await this.findExistingVideo(id, user.id);
 
 		await this.videoDislikeService.toggleDislike(video.id, user.id);
+		this.eventService.emit(`video-${id}`, { event: 'update' });
 	}
 
 	async createComment(username: User['username'], id: Video['id'], comment: CreateCommentDto): Promise<Comment> {
@@ -109,7 +117,15 @@ export class VideoService {
 			this.logger.warn(`video with id '${id}' was not found`);
 			throw new NotFoundException(`video with id '${id}' was not found`);
 		}
-		return this.commentService.createComment(user, video, comment);
+		const newComment = await this.commentService.createComment(user, video, comment);
+
+		this.eventService.emit(`video-${id}-comment`, { event: 'create' });
+
+		return this.commentService.findExistingComment(newComment.id);
+	}
+
+	sseVideoComments(id: Video['id']): Observable<unknown> {
+		return this.eventService.subscribe(`video-${id}-comment`);
 	}
 
 	sendThumbnail(id: Video['id'], response: Response): void {
@@ -136,6 +152,7 @@ export class VideoService {
 		}
 
 		await this.videoRepository.increment({ id }, 'views', 1);
+		this.eventService.emit(`video-${id}`, { event: 'update' });
 
 		const { size } = statSync(videoPath);
 		const videoRange = headers.range;

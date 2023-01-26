@@ -10,7 +10,7 @@ export class EventService {
 	private readonly emitter = new EventEmitter();
 
 	subscribe(channel: string): Observable<unknown> {
-		this.logger.debug(`subscribing to event with channel '${channel}'`);
+		this.logger.debug(`subscribing to channel '${channel}'`);
 
 		const heartbeat = interval(40000).pipe(map(() => ({ data: { event: 'heartbeat', data: null } })));
 		const events = fromEvent(this.emitter, channel);

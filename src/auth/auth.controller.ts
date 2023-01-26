@@ -18,20 +18,20 @@ export class AuthController {
 	@ApiResponse({ status: HttpStatus.OK, type: UserDto })
 	@Throttle(64, 60)
 	@Authentication()
-	@Get('/me')
+	@Get('me')
 	reveal(@CurrentUser() user: User): Promise<User | null> {
 		return this.authService.find(user.username);
 	}
 
 	@Throttle(8, 60)
-	@Post('/signup')
+	@Post('signup')
 	signup(@Body() signupRequest: UserSignupDto): Promise<User> {
 		return this.authService.signup(signupRequest.username, signupRequest.password);
 	}
 
 	@Throttle(8, 60)
 	@UseGuards(LocalAuthGuard)
-	@Post('/signin')
+	@Post('signin')
 	signin(@Body() signinRequest: UserSigninDto): { access_token: string } {
 		return this.authService.signin(signinRequest.username, signinRequest.password);
 	}

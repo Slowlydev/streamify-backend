@@ -7,7 +7,7 @@ import { Authentication } from '../common/decorators/authentication.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { BaseDto } from '../common/entities/base-dto';
 import { User } from '../user/user.entity';
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { CreateCommentDto } from '../comment/dto/create-comment.dto';
 import { VideoQueryFiltersDto } from './dto/video-query-filters.dto';
 import { VideoDto } from './dto/video.dto';
 import { VideoService } from './video.service';
@@ -24,38 +24,38 @@ export class VideoController {
 	}
 
 	@Authentication()
-	@Get('/:id')
+	@Get(':id')
 	getVideo(@CurrentUser() user: User, @Param() param: BaseDto): Promise<VideoDto> {
 		return this.videoService.findVideo(param.id, user.username);
 	}
 
 	@Authentication()
-	@Sse('/:id/sse')
+	@Sse(':id/sse')
 	sseVideo(@Param() param: BaseDto): Observable<unknown> {
 		return this.videoService.sseVideo(param.id);
 	}
 
 	@Authentication()
-	@Get('/:id/comment')
+	@Get(':id/comment')
 	getComments(@CurrentUser() user: User, @Param() param: BaseDto): Promise<Comment[]> {
 		return this.videoService.findComments(user.username, param.id);
 	}
 
 	@Authentication()
-	@Sse('/:id/comment/sse')
+	@Sse(':id/comment/sse')
 	sseVideoComments(@Param() param: BaseDto): Observable<unknown> {
 		return this.videoService.sseVideoComments(param.id);
 	}
 
 	@Authentication()
-	@Get('/:id/thumbnail')
+	@Get(':id/thumbnail')
 	@Header('Accept-Ranges', 'bytes')
 	@Header('Content-Type', 'image/png')
 	getThumbnail(@Param() param: BaseDto, @Res() response: Response): void {
 		return this.videoService.sendThumbnail(param.id, response);
 	}
 
-	@Get('/:id/stream')
+	@Get(':id/stream')
 	@Header('Accept-Ranges', 'bytes')
 	@Header('Content-Type', 'video/mp4')
 	streamVideo(
@@ -67,7 +67,7 @@ export class VideoController {
 	}
 
 	@Authentication()
-	@Post('/:id/comment')
+	@Post(':id/comment')
 	postComment(@CurrentUser() user: User, @Param() param: BaseDto, @Body() body: CreateCommentDto): Promise<Comment> {
 		return this.videoService.createComment(user.username, param.id, body);
 	}

@@ -13,7 +13,7 @@ import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { VideoDislikeService } from '../video-dislike/video-dislike.service';
 import { VideoLikeService } from '../video-like/video-like.service';
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { CreateCommentDto } from '../comment/dto/create-comment.dto';
 import { VideoQueryFiltersDto } from './dto/video-query-filters.dto';
 import { VideoDto } from './dto/video.dto';
 import { Video } from './video.entity';

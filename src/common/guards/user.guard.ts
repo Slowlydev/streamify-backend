@@ -25,7 +25,6 @@ export class UserGuard implements CanActivate {
 			const request = context.switchToHttp().getRequest();
 			const currentUser = await this.userRepository.findOne({
 				where: { username: request.user.username },
-				relations: ['roles'],
 			});
 
 			if (!currentUser) {
@@ -63,6 +62,10 @@ export class UserGuard implements CanActivate {
 			allowedUsers = allowedUsers.filter(
 				(value, index, self) => index === self.findIndex((employee) => employee.id === value.id),
 			);
+
+			if (allowedUsers.some((user) => user.username === currentUser.username)) {
+				return true;
+			}
 
 			return false;
 		} catch {

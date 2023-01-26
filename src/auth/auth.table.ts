@@ -15,4 +15,12 @@ export const authorization: AuthTable = {
 			users: ['user'],
 		},
 	},
+	comment: {
+		update: {
+			users: ['comment.user'],
+		},
+		delete: {
+			users: ['comment.user'],
+		},
+	},
 };

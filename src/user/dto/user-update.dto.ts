@@ -6,14 +6,13 @@ import { User } from '../user.entity';
 
 export class UserUpdateDto {
 	@ApiProperty({ type: String })
-	@IsOptional()
 	@IsString()
 	@MinLength(4)
 	@MaxLength(32)
 	@Matches(/^[a-zA-Z0-9-]+$/)
-	username?: User['username'];
+	username: User['username'];
 
-	@ApiProperty({ type: String })
+	@ApiProperty({ type: String, required: false })
 	@IsOptional()
 	@IsString()
 	@MinLength(8)
@@ -23,12 +22,12 @@ export class UserUpdateDto {
 	@Matches(/(?=(.*[A-Z]){2})/)
 	password?: User['password'];
 
-	@ApiProperty({ required: false })
+	@ApiProperty({ enum: Language, required: false })
 	@IsOptional()
 	@IsEnum(Language)
 	language?: Language;
 
-	@ApiProperty({ required: false })
+	@ApiProperty({ enum: Theme, required: false })
 	@IsOptional()
 	@IsEnum(Theme)
 	theme?: Theme;

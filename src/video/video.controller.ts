@@ -8,7 +8,7 @@ import { BaseDto } from '../common/entities/base-dto';
 import { User } from '../user/user.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { VideoQueryFiltersDto } from './dto/video-query-filters.dto';
-import { Video } from './video.entity';
+import { VideoDto } from './dto/video.dto';
 import { VideoService } from './video.service';
 
 @ApiTags('video')
@@ -18,13 +18,13 @@ export class VideoController {
 
 	@Authentication()
 	@Get()
-	getVideos(@Query() query: VideoQueryFiltersDto): Promise<Video[]> {
+	getVideos(@Query() query: VideoQueryFiltersDto): Promise<VideoDto[]> {
 		return this.videoService.findVideos(query);
 	}
 
 	@Authentication()
 	@Get('/:id')
-	getVideo(@Param() param: BaseDto): Promise<Video> {
+	getVideo(@Param() param: BaseDto): Promise<VideoDto> {
 		return this.videoService.findVideo(param.id);
 	}
 
@@ -51,6 +51,18 @@ export class VideoController {
 		@Res() response: Response,
 	): Promise<void> {
 		return this.videoService.streamVideo(param.id, headers, response);
+	}
+
+	@Authentication()
+	@Post(':id/like')
+	postLike(@CurrentUser() user: User, @Param() param: BaseDto): Promise<void> {
+		return this.videoService.likeVideo(user.username, param.id);
+	}
+
+	@Authentication()
+	@Post(':id/like')
+	postDislike(@CurrentUser() user: User, @Param() param: BaseDto): Promise<void> {
+		return this.videoService.dislikeVideo(user.username, param.id);
 	}
 
 	@Authentication()

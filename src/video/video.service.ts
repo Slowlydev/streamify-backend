@@ -6,16 +6,22 @@ import { Repository } from 'typeorm';
 import { Comment } from '../comment/comment.entity';
 import { CommentService } from '../comment/comment.service';
 import { LoggerService } from '../common/logger/logger.service';
+import { calcVideoAlgorithm } from '../common/utils/video-algorithm.util';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
+import { VideoDislikeService } from '../video-dislike/video-dislike.service';
+import { VideoLikeService } from '../video-like/video-like.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { VideoQueryFiltersDto } from './dto/video-query-filters.dto';
+import { VideoDto } from './dto/video.dto';
 import { Video } from './video.entity';
 
 @Injectable()
 export class VideoService {
 	constructor(
 		@InjectRepository(Video) private readonly videoRepository: Repository<Video>,
+		private readonly videoDislikeService: VideoDislikeService,
+		private readonly videoLikeService: VideoLikeService,
 		private readonly commentService: CommentService,
 		private readonly userService: UserService,
 		private readonly logger: LoggerService,
@@ -23,26 +29,26 @@ export class VideoService {
 
 	private relations = ['user'];
 
-	private async findExistingVideo(id: Video['id']): Promise<Video> {
+	private async findExistingVideo(id: Video['id']): Promise<VideoDto> {
 		const video = await this.videoRepository.findOne({ where: { id }, relations: this.relations });
+		const likes = await this.videoLikeService.countLikes(id);
+		const dislikes = await this.videoDislikeService.countDislikes(id);
 
 		if (!video) {
 			this.logger.warn(`video with id '${id}' was not found`);
 			throw new NotFoundException(`video with id '${id}' was not found`);
 		}
 
-		return video;
+		return { ...video, likes, dislikes };
 	}
 
-	findVideos(filters: VideoQueryFiltersDto): Promise<Video[]> {
+	async findVideos(filters: VideoQueryFiltersDto): Promise<VideoDto[]> {
 		this.logger.info('finding all videos');
 
-		const queryBuilder = this.videoRepository.createQueryBuilder('video').select();
+		const queryBuilder = this.videoRepository.createQueryBuilder('video').select('video.id');
 		this.relations.forEach((relation) => {
 			queryBuilder.leftJoinAndSelect(`video.${relation}`, relation);
 		});
-		queryBuilder.orderBy('video.likes', 'DESC');
-		queryBuilder.addOrderBy('video.views', 'DESC');
 
 		if (filters.title) {
 			queryBuilder.where('video.title like :title', { title: `%${filters.title}%` });
@@ -51,10 +57,13 @@ export class VideoService {
 			queryBuilder.andWhere('video.user_id = :userId', { userId: filters.userId });
 		}
 
-		return queryBuilder.getMany();
+		const ids = (await queryBuilder.getMany()).map((video) => video.id);
+		const videos = await Promise.all(ids.map((id) => this.findExistingVideo(id)));
+
+		return calcVideoAlgorithm(videos);
 	}
 
-	findVideo(id: Video['id']): Promise<Video> {
+	findVideo(id: Video['id']): Promise<VideoDto> {
 		this.logger.info(`finding video with id '${id}'`);
 
 		return this.findExistingVideo(id);
@@ -66,10 +75,32 @@ export class VideoService {
 		return this.commentService.findComments(id);
 	}
 
-	async createComment(username: User['username'], id: Video['id'], comment: CreateCommentDto): Promise<Comment> {
+	async likeVideo(username: User['username'], id: Video['id']): Promise<void> {
+		this.logger.info(`liking video with id '${id}'`);
+
 		const user = await this.userService.findUsername(username);
 		const video = await this.findExistingVideo(id);
 
+		await this.videoLikeService.saveLike(video.id, user.id);
+	}
+
+	async dislikeVideo(username: User['username'], id: Video['id']): Promise<void> {
+		this.logger.info(`disliking video with id '${id}'`);
+
+		const user = await this.userService.findUsername(username);
+		const video = await this.findExistingVideo(id);
+
+		await this.videoDislikeService.saveDislike(video.id, user.id);
+	}
+
+	async createComment(username: User['username'], id: Video['id'], comment: CreateCommentDto): Promise<Comment> {
+		const user = await this.userService.findUsername(username);
+		const video = await this.videoRepository.findOne({ where: { id }, relations: { user: true } });
+
+		if (!video) {
+			this.logger.warn(`video with id '${id}' was not found`);
+			throw new NotFoundException(`video with id '${id}' was not found`);
+		}
 		return this.commentService.createComment(user, video, comment);
 	}
 
@@ -96,6 +127,8 @@ export class VideoService {
 			throw new NotFoundException(`video with id '${id}' was not found`);
 		}
 
+		await this.videoRepository.increment({ id }, 'views', 1);
+
 		const { size } = statSync(videoPath);
 		const videoRange = headers.range;
 
@@ -114,8 +147,6 @@ export class VideoService {
 
 			response.writeHead(HttpStatus.OK, head);
 			createReadStream(videoPath).pipe(response);
-
-			await this.videoRepository.increment({ id }, 'views', 1);
 		}
 	}
 }

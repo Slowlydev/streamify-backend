@@ -3,6 +3,8 @@ import { Comment } from '../comment/comment.entity';
 import { MetadataEntity } from '../common/entities/metadata-entity';
 import { Language } from '../common/enums/language.enum';
 import { Theme } from '../common/enums/theme.enum';
+import { VideoDislike } from '../video-dislike/video-dislike.entity';
+import { VideoLike } from '../video-like/video-like.entity';
 import { Video } from '../video/video.entity';
 
 @Entity('user')
@@ -21,6 +23,12 @@ export class User extends MetadataEntity {
 
 	@OneToMany(() => Video, (video) => video.user)
 	videos: Video[];
+
+	@OneToMany(() => VideoLike, (videoLike) => videoLike.user)
+	likedVideos: VideoLike[];
+
+	@OneToMany(() => VideoDislike, (videoDislikes) => videoDislikes.user)
+	dislikedVideos: VideoDislike[];
 
 	@OneToMany(() => Comment, (comment) => comment.user)
 	comments: Comment[];

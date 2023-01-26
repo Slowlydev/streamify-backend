@@ -9,6 +9,8 @@ import { SchedulerModule } from './common/scheduler/scheduler.module';
 import { ThrottleModule } from './common/throttle/throttle.module';
 import { EventModule } from './event/event.module';
 import { UserModule } from './user/user.module';
+import { VideoDislikeModule } from './video-dislike/video-dislike.module';
+import { VideoLikeModule } from './video-like/video-like.module';
 import { VideoModule } from './video/video.module';
 
 @Module({
@@ -22,6 +24,8 @@ import { VideoModule } from './video/video.module';
 		EventModule,
 		UserModule,
 		VideoModule,
+		VideoLikeModule,
+		VideoDislikeModule,
 		CommentModule,
 	],
 	controllers: [],

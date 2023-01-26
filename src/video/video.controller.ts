@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Headers, Param, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Header, Headers, Param, Patch, Post, Query, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Comment } from '../comment/comment.entity';
@@ -18,20 +18,20 @@ export class VideoController {
 
 	@Authentication()
 	@Get()
-	getVideos(@Query() query: VideoQueryFiltersDto): Promise<VideoDto[]> {
-		return this.videoService.findVideos(query);
+	getVideos(@CurrentUser() user: User, @Query() query: VideoQueryFiltersDto): Promise<VideoDto[]> {
+		return this.videoService.findVideos(user.username, query);
 	}
 
 	@Authentication()
 	@Get('/:id')
-	getVideo(@Param() param: BaseDto): Promise<VideoDto> {
-		return this.videoService.findVideo(param.id);
+	getVideo(@CurrentUser() user: User, @Param() param: BaseDto): Promise<VideoDto> {
+		return this.videoService.findVideo(param.id, user.username);
 	}
 
 	@Authentication()
 	@Get('/:id/comment')
-	getComments(@Param() param: BaseDto): Promise<Comment[]> {
-		return this.videoService.findComments(param.id);
+	getComments(@CurrentUser() user: User, @Param() param: BaseDto): Promise<Comment[]> {
+		return this.videoService.findComments(user.username, param.id);
 	}
 
 	@Authentication()
@@ -54,20 +54,20 @@ export class VideoController {
 	}
 
 	@Authentication()
-	@Post(':id/like')
+	@Post('/:id/comment')
+	postComment(@CurrentUser() user: User, @Param() param: BaseDto, @Body() body: CreateCommentDto): Promise<Comment> {
+		return this.videoService.createComment(user.username, param.id, body);
+	}
+
+	@Authentication()
+	@Patch(':id/like')
 	postLike(@CurrentUser() user: User, @Param() param: BaseDto): Promise<void> {
 		return this.videoService.likeVideo(user.username, param.id);
 	}
 
 	@Authentication()
-	@Post(':id/like')
+	@Patch(':id/dislike')
 	postDislike(@CurrentUser() user: User, @Param() param: BaseDto): Promise<void> {
 		return this.videoService.dislikeVideo(user.username, param.id);
-	}
-
-	@Authentication()
-	@Post('/:id/comment')
-	postComment(@CurrentUser() user: User, @Param() param: BaseDto, @Body() body: CreateCommentDto): Promise<Comment> {
-		return this.videoService.createComment(user.username, param.id, body);
 	}
 }

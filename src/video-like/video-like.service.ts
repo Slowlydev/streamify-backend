@@ -17,7 +17,22 @@ export class VideoLikeService {
 			.getCount();
 	}
 
-	async saveLike(videoId: Video['id'], userId: User['id']): Promise<void> {
+	async likedByUser(videoId: Video['id'], userId: User['id']): Promise<boolean> {
+		return (
+			(await this.videoLikeRepository
+				.createQueryBuilder('likes')
+				.select()
+				.where('likes.user = :userId', { userId })
+				.andWhere('likes.video = :videoId', { videoId })
+				.getCount()) > 0
+		);
+	}
+
+	async toggleLike(videoId: Video['id'], userId: User['id']): Promise<void> {
+		if (await this.likedByUser(videoId, userId)) {
+			await this.videoLikeRepository.delete({ video: { id: videoId }, user: { id: userId } });
+			return;
+		}
 		await this.videoLikeRepository
 			.createQueryBuilder()
 			.insert()

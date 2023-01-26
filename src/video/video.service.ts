@@ -29,23 +29,27 @@ export class VideoService {
 
 	private relations = ['user'];
 
-	private async findExistingVideo(id: Video['id']): Promise<VideoDto> {
-		const video = await this.videoRepository.findOne({ where: { id }, relations: this.relations });
-		const likes = await this.videoLikeService.countLikes(id);
-		const dislikes = await this.videoDislikeService.countDislikes(id);
+	private async findExistingVideo(videoId: Video['id'], userId: User['id']): Promise<VideoDto> {
+		const video = await this.videoRepository.findOne({ where: { id: videoId }, relations: this.relations });
+		const likes = await this.videoLikeService.countLikes(videoId);
+		const dislikes = await this.videoDislikeService.countDislikes(videoId);
+		const liked = await this.videoLikeService.likedByUser(videoId, userId);
+		const disliked = await this.videoDislikeService.dislikedByUser(videoId, userId);
 
 		if (!video) {
-			this.logger.warn(`video with id '${id}' was not found`);
-			throw new NotFoundException(`video with id '${id}' was not found`);
+			this.logger.warn(`video with id '${videoId}' was not found`);
+			throw new NotFoundException(`video with id '${videoId}' was not found`);
 		}
 
-		return { ...video, likes, dislikes };
+		return { ...video, likes, dislikes, liked, disliked };
 	}
 
-	async findVideos(filters: VideoQueryFiltersDto): Promise<VideoDto[]> {
+	async findVideos(username: User['username'], filters: VideoQueryFiltersDto): Promise<VideoDto[]> {
 		this.logger.info('finding all videos');
 
+		const user = await this.userService.findUsername(username);
 		const queryBuilder = this.videoRepository.createQueryBuilder('video').select('video.id');
+
 		this.relations.forEach((relation) => {
 			queryBuilder.leftJoinAndSelect(`video.${relation}`, relation);
 		});
@@ -58,19 +62,23 @@ export class VideoService {
 		}
 
 		const ids = (await queryBuilder.getMany()).map((video) => video.id);
-		const videos = await Promise.all(ids.map((id) => this.findExistingVideo(id)));
+		const videos = await Promise.all(ids.map((id) => this.findExistingVideo(id, user.id)));
 
 		return calcVideoAlgorithm(videos);
 	}
 
-	findVideo(id: Video['id']): Promise<VideoDto> {
+	async findVideo(id: Video['id'], username: User['username']): Promise<VideoDto> {
 		this.logger.info(`finding video with id '${id}'`);
 
-		return this.findExistingVideo(id);
+		const user = await this.userService.findUsername(username);
+
+		return this.findExistingVideo(id, user.id);
 	}
 
-	async findComments(id: Video['id']): Promise<Comment[]> {
-		await this.findExistingVideo(id);
+	async findComments(username: User['username'], id: Video['id']): Promise<Comment[]> {
+		const user = await this.userService.findUsername(username);
+
+		await this.findExistingVideo(id, user.id);
 
 		return this.commentService.findComments(id);
 	}
@@ -79,18 +87,18 @@ export class VideoService {
 		this.logger.info(`liking video with id '${id}'`);
 
 		const user = await this.userService.findUsername(username);
-		const video = await this.findExistingVideo(id);
+		const video = await this.findExistingVideo(id, user.id);
 
-		await this.videoLikeService.saveLike(video.id, user.id);
+		await this.videoLikeService.toggleLike(video.id, user.id);
 	}
 
 	async dislikeVideo(username: User['username'], id: Video['id']): Promise<void> {
 		this.logger.info(`disliking video with id '${id}'`);
 
 		const user = await this.userService.findUsername(username);
-		const video = await this.findExistingVideo(id);
+		const video = await this.findExistingVideo(id, user.id);
 
-		await this.videoDislikeService.saveDislike(video.id, user.id);
+		await this.videoDislikeService.toggleDislike(video.id, user.id);
 	}
 
 	async createComment(username: User['username'], id: Video['id'], comment: CreateCommentDto): Promise<Comment> {

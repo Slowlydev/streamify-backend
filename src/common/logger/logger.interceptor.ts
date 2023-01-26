@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { coloredStatusCode } from '../utils/logger-colors.util';
-import { toPlural } from '../utils/string-plural.utils';
+import { toPlural } from '../utils/string-plural.util';
 import { LoggerService } from './logger.service';
 
 @Injectable()

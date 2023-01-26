@@ -17,7 +17,22 @@ export class VideoDislikeService {
 			.getCount();
 	}
 
-	async saveDislike(videoId: Video['id'], userId: User['id']): Promise<void> {
+	async dislikedByUser(videoId: Video['id'], userId: User['id']): Promise<boolean> {
+		return (
+			(await this.videoDislikeRepository
+				.createQueryBuilder('dislikes')
+				.select()
+				.where('dislikes.user = :userId', { userId })
+				.andWhere('dislikes.video = :videoId', { videoId })
+				.getCount()) > 0
+		);
+	}
+
+	async toggleDislike(videoId: Video['id'], userId: User['id']): Promise<void> {
+		if (await this.dislikedByUser(videoId, userId)) {
+			await this.videoDislikeRepository.delete({ video: { id: videoId }, user: { id: userId } });
+			return;
+		}
 		await this.videoDislikeRepository
 			.createQueryBuilder()
 			.insert()

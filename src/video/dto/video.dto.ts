@@ -19,6 +19,12 @@ export class VideoDto extends MetadataDto {
 	@ApiProperty({ type: Number })
 	dislikes: number;
 
+	@ApiProperty({ type: Boolean })
+	liked: boolean;
+
+	@ApiProperty({ type: Boolean })
+	disliked: boolean;
+
 	@ApiProperty({ type: User })
 	user: User;
 

@@ -63,6 +63,12 @@ export class VideoService {
 		if (filters.userId) {
 			queryBuilder.andWhere('video.user_id = :userId', { userId: filters.userId });
 		}
+		if (filters.skip) {
+			queryBuilder.skip(filters.skip);
+		}
+		if (filters.take) {
+			queryBuilder.take(filters.take);
+		}
 
 		const ids = (await queryBuilder.getMany()).map((video) => video.id);
 		const videos = await Promise.all(ids.map((id) => this.findExistingVideo(id, user.id)));
